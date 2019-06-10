@@ -5,7 +5,7 @@ C++ String implementation with extra functions compared to std::string
 
 This library is very easy to use as it syntax is pretty similar to the standard c++ one.
 
-'''cpp
+'''
 string a = "Hello";
 s += ' ';
 
@@ -18,7 +18,7 @@ std::cout << (a + b) << std::endl;
 
 But it has also many improvements, for example:
 
-'''c++
+'''
 string s = "Hello ";
 
 std::cout << (s * 4) << std::endl;
