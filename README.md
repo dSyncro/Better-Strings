@@ -28,7 +28,7 @@ std::cout << (s * 4) << std::endl;
 
 ## Actually depending on
 
-* std::memory
+* std::memcpy
 * std::shared_ptr
 
 ## Contributing
