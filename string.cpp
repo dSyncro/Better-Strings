@@ -375,6 +375,20 @@ string& string::operator +=(const string& str)
 	return *this;
 }
 
+string& string::operator *=(int n)
+{
+	unsigned len = _length * n;
+	char* buffer = new char[len];
+
+	for (int i = 0; i < n; i++)
+		std::memcpy(buffer + i * _length, _shared_buffer.get(), _length);
+
+	_length = len;
+	_shared_buffer = std::shared_ptr<char>(buffer);
+
+	return *this;
+}
+
 char string::operator [](int index) const
 {
 	if (index >= _length) throw 1;
@@ -407,11 +421,7 @@ string operator *(const string& str, unsigned n)
 	for (int i = 0; i < n; i++)
 		std::memcpy(buffer + i * str._length, str._shared_buffer.get(), str._length);
 
-	string s = string();
-	s._length = len;
-	s._shared_buffer = std::shared_ptr<char>(buffer);
-
-	return s;
+	return string(buffer, len);
 }
 
 string operator *(unsigned n, const string& str) { return str * n; }
@@ -463,7 +473,7 @@ bool operator !=(const string& str, char c) { return !(str == c); }
 
 bool operator !=(char c, const string& str) { return !(str == c); }
 
-std::ostream& operator <<(std::ostream& stream, string& str)
+std::ostream& operator <<(std::ostream& stream, const string& str)
 {
 	stream.write(str._shared_buffer.get(), str._length);
 	return stream;

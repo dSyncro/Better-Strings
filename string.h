@@ -61,6 +61,7 @@ public:
 	static string empty();
 
 	string& operator +=(const string& str);
+	string& operator *=(int n);
 
 	char operator[](int index) const;
 	char& operator[](int index);
@@ -89,7 +90,7 @@ public:
 	friend bool operator !=(const string& str, char c);
 	friend bool operator !=(char c, const string& str);
 
-	friend std::ostream& operator <<(std::ostream& stream, string& str);
+	friend std::ostream& operator <<(std::ostream& stream, const string& str);
 	friend std::istream& operator >>(std::istream& stream, string& str);
 
 private:
