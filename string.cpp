@@ -1,162 +1,278 @@
 #include <cstring>
+#include <stdexcept>
 
 #include "string.h"
 
 #pragma region Constructors
 
-string::string()
-{
-	_length = 0;
-	_shared_buffer = std::shared_ptr<char>(new char[0]);
-	return;
-}
+string::string() : _buffer(new char[0]), _length(0) {}
 
-string::string(char c)
+string::string(char c) : _length(1)
 {
-	_length = 1;
 	char* buffer = new char[1];
 	buffer[0] = c;
-	_shared_buffer = std::shared_ptr<char>(buffer);
+
+	_buffer = buffer;
 }
 
 string::string(char* chars)
 {
 	_length = std::strlen(chars);
+
 	char* buffer = new char[_length];
 	std::memcpy(buffer, chars, _length);
-	_shared_buffer = std::shared_ptr<char>(buffer);
+
+	_buffer = buffer;
 }
+
+string::string(char* chars, unsigned length) : _buffer(chars), _length(length) {}
 
 string::string(const char* str)
 {
 	if (!str)
 	{
 		_length = 0;
-		_shared_buffer = std::shared_ptr<char>(new char[0]);
+		_buffer = new char[0];
 		return;
 	}
 
 	_length = std::strlen(str);
+
 	char* buffer = new char[_length];
 	std::memcpy(buffer, str, _length);
 
-	_shared_buffer = std::shared_ptr<char>(buffer);
+	_buffer = buffer;
 }
 
-string::string(const char* str, unsigned length)
+string::string(const string& str) : _length(str._length)
 {
-	_length = length;
 	char* buffer = new char[_length];
-	std::memcpy(buffer, str, _length);
+	std::memcpy(buffer, str._buffer, _length);
 
-	_shared_buffer = std::shared_ptr<char>(buffer);
-}
-
-string::string(const string& str)
-{
-	_length = str._length;
-
-	char* buffer = new char[_length];
-	std::memcpy(buffer, str._shared_buffer.get(), _length);
-
-	_shared_buffer = std::shared_ptr<char>(buffer);
+	_buffer = buffer;
 }
 
 string::~string()
 {
-	//delete[] _buffer;
+	delete[] _buffer;
 }
 
 #pragma endregion
 
 #pragma region Methods
 
+int string::count(char c) const noexcept
+{
+	int count = 0;
+	for (int i = 0; i < _length; i++)
+		if (_buffer[i] == c) count++;
+
+	return count;
+}
+
+int string::firstIndexOf(char c) const noexcept
+{
+	for (int i = 0; i < _length; i++)
+		if (_buffer[i] == c) return i;
+
+	return -1;
+}
+
+int string::lastIndexOf(char c) const noexcept
+{
+	for (int i = _length - 1; i >= 0; i--)
+		if (_buffer[i] == c) return i;
+
+	return -1;
+}
+
+unsigned string::length() const noexcept { return _length; }
+
+bool string::contains(char c) const noexcept
+{
+	for (int i = 0; i < _length; i++)
+		if (_buffer[i] == c) return true;
+
+	return false;
+}
+
+bool string::contains(string str) const noexcept
+{
+	if (str._length > _length) return false;
+
+	int gap = _length - str._length;
+	for (int i = 0; i <= gap; i++)
+	{
+		if (_buffer[i] != str[0]) continue;
+
+		int j = 1;
+		for (j = 1; j < str._length; j++)
+			if (_buffer[i + j] != str[j]) break;
+
+		if (j == str._length) return true;
+	}
+
+	return false;
+}
+
+bool string::isAlphabet() const noexcept
+{
+	for (int i = 0; i < _length; i++)
+	{
+		bool upperRange = _buffer[i] >= 'A' && _buffer[i] <= 'Z';
+		bool lowerRange = _buffer[i] >= 'a' && _buffer[i] <= 'z';
+		if (!upperRange && !lowerRange) return false;
+	}
+
+	return true;
+}
+
+bool string::isAlphanum() const noexcept
+{
+	for (int i = 0; i < _length; i++)
+	{
+		bool upperRange = _buffer[i] >= 'A' && _buffer[i] <= 'Z';
+		bool lowerRange = _buffer[i] >= 'a' && _buffer[i] <= 'z';
+		bool numberRange = _buffer[i] >= '0' && _buffer[i] <= '9';
+		if (!upperRange && !lowerRange && !numberRange) return false;
+	}
+
+	return true;
+}
+
+bool string::isEmpty() const noexcept { return _length; }
+
+bool string::isLower() const noexcept
+{
+	for (int i = 0; i < _length; i++)
+	{
+		bool upperRange = _buffer[i] >= 'A' && _buffer[i] <= 'Z';
+		if (upperRange) return false;
+	}
+
+	return true;
+}
+
+bool string::isNumber() const noexcept
+{
+	for (int i = 0; i < _length; i++)
+	{
+		bool numberRange = _buffer[i] >= '0' && _buffer[i] <= '9';
+		if (!numberRange) return false;
+	}
+
+	return true;
+}
+
+bool string::isUpper() const noexcept
+{
+	for (int i = 0; i < _length; i++)
+	{
+		bool lowerRange = _buffer[i] >= 'a' && _buffer[i] <= 'z';
+		if (lowerRange) return false;
+	}
+
+	return true;
+}
+
+const char* string::toRawString() const noexcept
+{
+	char* buffer = new char[_length + 1];
+	std::memcpy(buffer, _buffer, _length);
+	buffer[_length] = NULL;
+
+	return buffer;
+}
+
 string string::substring(int start, int length) const
 {
-	if ((start + length) > _length) throw 1;
+	if ((start + length) > _length)
+		throw std::out_of_range("selection outside original string");
 
 	char* buffer = new char[length];
-	std::memcpy(buffer, _shared_buffer.get() + start, length);
+	std::memcpy(buffer, _buffer + start, length);
 
 	return string(buffer, length);
 }
 
-string string::strip() const
+string string::strip() const noexcept
 {
 	unsigned start = 0;
 	for (start; start < _length; start++)
-		if (_shared_buffer.get()[start] != ' ' && _shared_buffer.get()[start] != '\n') break;
+		if (_buffer[start] != ' ' && _buffer[start] != '\n') break;
 
 	unsigned end = _length - 1;
 	for (end; end; end--)
-		if (_shared_buffer.get()[end] != ' ' && _shared_buffer.get()[end] != '\n') break;
+		if (_buffer[end] != ' ' && _buffer[end] != '\n') break;
 
 	int count = end - start + 1;
 	return substring(start, count);
 }
 
-string string::strip(char c) const
+string string::strip(char c) const noexcept
 {
 	unsigned start = 0;
 	for (start; start < _length; start++)
-		if (_shared_buffer.get()[start] != c) break;
+		if (_buffer[start] != c) break;
 
 	unsigned end = _length - 1;
 	for (end; end; end--)
-		if (_shared_buffer.get()[end] != c) break;
+		if (_buffer[end] != c) break;
 
 	int count = end - start + 1;
 	return substring(start, count);
 }
 
-string string::lstrip() const
+string string::lstrip() const noexcept
 {
 	unsigned i = 0;
 	for (i; i < _length; i++)
-		if (_shared_buffer.get()[i] != ' ' && _shared_buffer.get()[i] != '\n') break;
+		if (_buffer[i] != ' ' && _buffer[i] != '\n') break;
 
 	return substring(i, _length - i);
 }
 
-string string::lstrip(char c) const
+string string::lstrip(char c) const noexcept
 {
 	unsigned i = 0;
 	for (i; i < _length; i++)
-		if (_shared_buffer.get()[i] != c) break;
+		if (_buffer[i] != c) break;
 
 	return substring(i, _length - i);
 }
 
-string string::rstrip() const
+string string::rstrip() const noexcept
 {
 	unsigned i = _length - 1;
 	for (i; i; i--)
-		if (_shared_buffer.get()[i] != ' ' && _shared_buffer.get()[i] != '\n') break;
+		if (_buffer[i] != ' ' && _buffer[i] != '\n') break;
 
 	return substring(0, i + 1);
 }
 
-string string::rstrip(char c) const
+string string::rstrip(char c) const noexcept
 {
 	unsigned i = _length - 1;
 	for (i; i; i--)
-		if (_shared_buffer.get()[i] != c) break;
+		if (_buffer[i] != c) break;
 
 	return substring(0, i + 1);
 }
 
 string string::removeAt(int index) const
 {
+	if (index >= _length) throw std::out_of_range("index out of range");
+
 	unsigned len = _length - 1;
 	char* buffer = new char[len];
 
-	std::memcpy(buffer, _shared_buffer.get(), index);
-	std::memcpy(buffer + index, _shared_buffer.get() + index + 1, len - index);
+	std::memcpy(buffer, _buffer, index);
+	std::memcpy(buffer + index, _buffer + index + 1, len - index);
 
 	return string(buffer, len);
 }
 
-string string::removeFirst(char c) const
+string string::removeFirst(char c) const noexcept
 {
 	int index = firstIndexOf(c);
 	if (index == -1) return *this;
@@ -164,7 +280,7 @@ string string::removeFirst(char c) const
 	return removeAt(index);
 }
 
-string string::removeLast(char c) const
+string string::removeLast(char c) const noexcept
 {
 	int index = lastIndexOf(c);
 	if (index == -1) return *this;
@@ -172,19 +288,19 @@ string string::removeLast(char c) const
 	return removeAt(index);
 }
 
-string string::removeAll(char c) const
+string string::removeAll(char c) const noexcept
 {
-	int count = occurenciesCount(c);
-	if (!count) return *this;
+	int counter = count(c);
+	if (!counter) return *this;
 
-	unsigned len = _length - count;
+	unsigned len = _length - counter;
 	char* buffer = new char[len];
 
 	int occurence = 0;
 	for (int i = 0; i < len; i++)
 	{
-		if (_shared_buffer.get()[i + occurence] == c) occurence++;
-		buffer[i] = _shared_buffer.get()[i + occurence];
+		if (_buffer[i + occurence] == c) occurence++;
+		buffer[i] = _buffer[i + occurence];
 	}
 
 	return string(buffer, len);
@@ -192,7 +308,8 @@ string string::removeAll(char c) const
 
 string string::replaceAt(int index, char c) const
 {
-	if (index >= _length) throw 1;
+	if (index >= _length) 
+		throw std::out_of_range("index out of range");
 
 	string s = *this;
 	s[index] = c;
@@ -200,7 +317,7 @@ string string::replaceAt(int index, char c) const
 	return s;
 }
 
-string string::replaceFirst(char before, char after) const
+string string::replaceFirst(char before, char after) const noexcept
 {
 	int index = firstIndexOf(before);
 	if (index == -1) return *this;
@@ -208,7 +325,7 @@ string string::replaceFirst(char before, char after) const
 	return replaceAt(index, after);
 }
 
-string string::replaceLast(char before, char after) const
+string string::replaceLast(char before, char after) const noexcept
 {
 	int index = lastIndexOf(before);
 	if (index == -1) return *this;
@@ -216,7 +333,7 @@ string string::replaceLast(char before, char after) const
 	return replaceAt(index, after);
 }
 
-string string::replaceAll(char before, char after) const
+string string::replaceAll(char before, char after) const noexcept
 {
 	if (!contains(before)) return *this;
 
@@ -227,108 +344,57 @@ string string::replaceAll(char before, char after) const
 	return s;
 }
 
-string string::toLower() const
+string string::toLower() const noexcept
 {
 	char* buffer = new char[_length];
 	for (int i = 0; i < _length; i++)
 	{
-		char charAtIndex = _shared_buffer.get()[i];
+		char charAtIndex = _buffer[i];
 		if (charAtIndex >= 'A' && charAtIndex <= 'Z')
 			buffer[i] = charAtIndex - ('Z' - 'z');
 		else buffer[i] = charAtIndex;
 	}
+
 	return string(buffer, _length);
 }
 
-string string::toUpper() const
+string string::toUpper() const noexcept
 {
 	char* buffer = new char[_length];
 	for (int i = 0; i < _length; i++)
 	{
-		char charAtIndex = _shared_buffer.get()[i];
+		char charAtIndex = _buffer[i];
 		if (charAtIndex >= 'a' && charAtIndex <= 'z')
 			buffer[i] = charAtIndex - ('z' - 'Z');
 		else buffer[i] = charAtIndex;
 	}
+
 	return string(buffer, _length);
 }
 
-string string::switchCase() const
+string string::toggleCase() const noexcept
 {
 	char* buffer = new char[_length];
 	for (int i = 0; i < _length; i++)
 	{
-		char charAtIndex = _shared_buffer.get()[i];
+		char charAtIndex = _buffer[i];
 		if (charAtIndex >= 'a' && charAtIndex <= 'z')
 			buffer[i] = charAtIndex - ('z' - 'Z');
 		else if (charAtIndex >= 'A' && charAtIndex <= 'Z')
 			buffer[i] = charAtIndex - ('Z' - 'z');
 		else buffer[i] = charAtIndex;
 	}
+
 	return string(buffer, _length);
 }
-
-int string::firstIndexOf(char c) const
-{
-	for (int i = 0; i < _length; i++)
-		if (_shared_buffer.get()[i] == c) return i;
-
-	return -1;
-}
-
-int string::lastIndexOf(char c) const
-{
-	for (int i = _length - 1; i >= 0; i--)
-		if (_shared_buffer.get()[i] == c) return i;
-
-	return -1;
-}
-
-int string::occurenciesCount(char c) const
-{
-	int count = 0;
-	for (int i = 0; i < _length; i++)
-		if (_shared_buffer.get()[i] == c) count++;
-
-	return count;
-}
-
-bool string::contains(char c) const
-{
-	for (int i = 0; i < _length; i++)
-		if (_shared_buffer.get()[i] == c) return true;
-
-	return false;
-}
-
-bool string::contains(string str) const
-{
-	if (str._length > _length) return false;
-
-	int gap = _length - str._length;
-	for (int i = 0; i <= gap; i++)
-	{
-		if (_shared_buffer.get()[i] != str[0]) continue;
-
-		int j = 1;
-		for (j = 1; j < str._length; j++)
-			if (_shared_buffer.get()[i + j] != str[j]) break;
-
-		if (j == str._length) return true;
-	}
-
-	return false;
-}
-
-bool string::isEmpty() const { return _length; }
 
 std::vector<string> string::split(char c) const
 {
 	std::vector<string> strings;
 
-	string s = strip();
+	string s = strip(c);
 
-	unsigned count = s.occurenciesCount(c);
+	unsigned count = s.count(c);
 	if (!count) return strings;
 
 	unsigned lastIndexOf = 0;
@@ -337,7 +403,7 @@ std::vector<string> string::split(char c) const
 
 	for (unsigned i = 0; i < _length; i++)
 	{
-		if (s._shared_buffer.get()[i] != c) continue;
+		if (s._buffer[i] != c) continue;
 
 		strings[count] = s.substring(lastIndexOf, i - lastIndexOf);
 		lastIndexOf = i + 1;
@@ -349,28 +415,38 @@ std::vector<string> string::split(char c) const
 	return strings;
 }
 
-unsigned string::length() const { return _length; }
-
 #pragma endregion
 
 #pragma region Static Methods
 
-string string::empty() { return ""; }
+string string::empty() noexcept { return string(); }
 
 #pragma endregion
 
 #pragma region Operators
+
+string& string::operator =(const string& str)
+{
+	if (this == &str) return *this;
+
+	_length = str._length;
+
+	char* buffer = new char[_length];
+	std::memcpy(buffer, str._buffer, _length);
+	
+	_buffer = buffer;
+}
 
 string& string::operator +=(const string& str)
 {
 	unsigned length = _length + str._length;
 	char* final_buffer = new char[length];
 
-	std::memcpy(final_buffer, _shared_buffer.get(), _length);
-	std::memcpy(final_buffer + _length, str._shared_buffer.get(), str._length);
+	std::memcpy(final_buffer, _buffer, _length);
+	std::memcpy(final_buffer + _length, str._buffer, str._length);
 
 	_length = length;
-	_shared_buffer = std::shared_ptr<char>(final_buffer);
+	_buffer = final_buffer;
 
 	return *this;
 }
@@ -381,26 +457,26 @@ string& string::operator *=(int n)
 	char* buffer = new char[len];
 
 	for (int i = 0; i < n; i++)
-		std::memcpy(buffer + i * _length, _shared_buffer.get(), _length);
+		std::memcpy(buffer + i * _length, _buffer, _length);
 
 	_length = len;
-	_shared_buffer = std::shared_ptr<char>(buffer);
+	_buffer = buffer;
 
 	return *this;
 }
 
 char string::operator [](int index) const
 {
-	if (index >= _length) throw 1;
+	if (index >= _length) throw std::out_of_range("index out of range");
 
-	return _shared_buffer.get()[index];
+	return _buffer[index];
 }
 
 char& string::operator [](int index)
 {
-	if (index >= _length) throw 1;
+	if (index >= _length) throw std::out_of_range("index out of range");
 
-	return _shared_buffer.get()[index];
+	return _buffer[index];
 }
 
 string operator +(const string& a, const string& b) { return string(a) += b; }
@@ -419,7 +495,7 @@ string operator *(const string& str, unsigned n)
 	char* buffer = new char[len];
 
 	for (int i = 0; i < n; i++)
-		std::memcpy(buffer + i * str._length, str._shared_buffer.get(), str._length);
+		std::memcpy(buffer + i * str._length, str._buffer, str._length);
 
 	return string(buffer, len);
 }
@@ -475,7 +551,7 @@ bool operator !=(char c, const string& str) { return !(str == c); }
 
 std::ostream& operator <<(std::ostream& stream, const string& str)
 {
-	stream.write(str._shared_buffer.get(), str._length);
+	stream.write(str._buffer, str._length);
 	return stream;
 }
 
@@ -494,7 +570,7 @@ std::istream& operator >>(std::istream& stream, string& str)
 
 #pragma region Cast Operators
 
-string::operator char* () const { return _shared_buffer.get(); }
-string::operator const char* () const { return _shared_buffer.get(); }
+string::operator char* () const { return _buffer; }
+string::operator const char* () const { return _buffer; }
 
 #pragma endregion

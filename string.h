@@ -20,46 +20,54 @@ public:
 	string(const string& str);
 	~string();
 
+	int count(char c) const noexcept;
+	int firstIndexOf(char c) const noexcept;
+	int lastIndexOf(char c) const noexcept;
+
+	unsigned length() const noexcept;
+
+	bool contains(char c) const noexcept;
+	bool contains(string str) const noexcept;
+
+	bool isAlphabet() const noexcept;
+	bool isAlphanum() const noexcept;
+	bool isEmpty() const noexcept;
+	bool isLower() const noexcept;
+	bool isNumber() const noexcept;
+	bool isUpper() const noexcept;
+
+	const char* toRawString() const noexcept;
+
 	string substring(int start, int length) const;
 
-	string strip() const;
-	string strip(char c) const;
+	string strip() const noexcept;
+	string strip(char c) const noexcept;
 
-	string lstrip() const;
-	string lstrip(char c) const;
+	string lstrip() const noexcept;
+	string lstrip(char c) const noexcept;
 
-	string rstrip() const;
-	string rstrip(char c) const;
+	string rstrip() const noexcept;
+	string rstrip(char c) const noexcept;
 
 	string removeAt(int index) const;
-	string removeFirst(char c) const;
-	string removeLast(char c) const;
-	string removeAll(char c) const;
+	string removeFirst(char c) const noexcept;
+	string removeLast(char c) const noexcept;
+	string removeAll(char c) const noexcept;
 
 	string replaceAt(int index, char c) const;
-	string replaceFirst(char before, char after) const;
-	string replaceLast(char before, char after) const;
-	string replaceAll(char before, char after) const;
+	string replaceFirst(char before, char after) const noexcept;
+	string replaceLast(char before, char after) const noexcept;
+	string replaceAll(char before, char after) const noexcept;
 
-	string toLower() const;
-	string toUpper() const;
-	string switchCase() const;
-
-	int firstIndexOf(char c) const;
-	int lastIndexOf(char c) const;
-	int occurenciesCount(char c) const;
-
-	unsigned length() const;
-
-	bool contains(char c) const;
-	bool contains(string str) const;
-
-	bool isEmpty() const;
+	string toLower() const noexcept;
+	string toUpper() const noexcept;
+	string toggleCase() const noexcept;
 
 	std::vector<string> split(char c) const;
 
-	static string empty();
+	static string empty() noexcept;
 
+	string& operator =(const string& str);
 	string& operator +=(const string& str);
 	string& operator *=(int n);
 
@@ -95,8 +103,8 @@ public:
 
 private:
 
-	std::shared_ptr<char> _shared_buffer;
+	char* _buffer;
 	unsigned _length;
 
-	string(const char* str, unsigned length); // potentially dangerous constructor
+	string(char* chars, unsigned length); // potentially dangerous constructor, meant for internal use
 };
