@@ -43,7 +43,7 @@ Contributing will make you an amazing person, this project really needs your hel
 
 ## Authors
 
-* **Domenico Mancini** - unique developer - [nrgger](https://github.com/nrgger)
+* **Domenico Mancini** - unique developer - [dSyncro](https://github.com/dSyncro)
 
 Looking for amazing people that could help improving this project.
 
