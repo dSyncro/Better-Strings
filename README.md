@@ -3,9 +3,7 @@ C++ String implementation with extra functions compared to std::string
 
 ## Purposes of this library
 
-The main aim of this library is to provide a custom implementation of string, easier to use compared to the std one.
-
-Eventually the library will be std independant (except for std::vector, necessary in the 'split()' method, as replacing it would compromise easy of use).
+The main aim of this library is to provide a custom implementation of string, easier to use compared to the std one (not necessary faster).
 
 ## Getting Started
 
@@ -31,11 +29,6 @@ std::cout << (s * 4) << std::endl;
 
 // Output is 'Hello Hello Hello Hello'
 ```
-
-## Actually depending on
-
-* std::memcpy
-* std::vector
 
 ## Contributing
 
